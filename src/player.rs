@@ -4,11 +4,11 @@ use std::io::Cursor;
 
 static NOISE: &[u8] = include_bytes!("../assets/mynoise_gray_05.mp3");
 
-pub fn loop_forever() -> anyhow::Result<()> {
+pub fn loop_forever(volume: f32) -> anyhow::Result<()> {
     let (_stream, handle) =
         rodio::OutputStream::try_default().context("can't open audio device")?;
     let sink = rodio::Sink::try_new(&handle).context("can't create audio sink")?;
-    sink.set_volume(0.3);
+    sink.set_volume(volume);
 
     let source = rodio::Decoder::new(Cursor::new(NOISE)).context("can't decode")?.repeat_infinite();
     sink.append(source);

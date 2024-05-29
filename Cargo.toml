@@ -9,9 +9,12 @@ edition = "2021"
 anyhow = "1.0.75"
 clap = { version = "4.4.1", features = ["derive"] }
 daemonize = "0.5.0"
+dirs = "5.0.1"
 env_logger = "0.10.0"
 fd-lock = "4.0.0"
 log = "0.4.20"
 nix = { version = "0.27.1", features = ["process", "signal"] }
 rodio = "0.17.1"
+serde = { version = "1.0.203", features = ["derive"] }
 tokio = { version = "1.32.0", features = ["signal"] }
+toml = "0.8.13"

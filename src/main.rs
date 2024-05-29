@@ -1,5 +1,6 @@
 mod daemon;
 mod player;
+mod config;
 
 use clap::{Parser, Subcommand};
 

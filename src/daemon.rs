@@ -2,6 +2,7 @@
 
 use anyhow::Context;
 use fd_lock::RwLock;
+use nix::errno::Errno;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
@@ -9,6 +10,13 @@ use std::io::{Read, Write};
 const PID_FILE: &str = "/tmp/noiseplayer.pid";
 
 pub fn spawn() -> anyhow::Result<()> {
+    let config = match crate::config::load() {
+        Ok(config) => config,
+        Err(e) => {
+            eprintln!("Failed to load config: {}\nUsing default config.", e);
+            crate::config::Config::default()
+        }
+    };
     let pidfile = OpenOptions::new()
         .read(true)
         .write(true)
@@ -36,7 +44,7 @@ pub fn spawn() -> anyhow::Result<()> {
                     // We are the child.
                     pidfile.set_len(0)?;
                     write!(pidfile, "{}", nix::unistd::getpid())?;
-                    crate::player::loop_forever()?;
+                    crate::player::loop_forever(config.volume)?;
                     Ok(())
                 }
             }
@@ -72,6 +80,12 @@ pub fn kill() -> anyhow::Result<()> {
         }
     };
     let pid = read_pid(&pidfile)?;
-    nix::sys::signal::kill(pid, nix::sys::signal::Signal::SIGTERM)?;
+    match nix::sys::signal::kill(pid, nix::sys::signal::Signal::SIGTERM) {
+        // ESRCH means the process does not exist, so already killed.
+        Ok(()) | Err(Errno::ESRCH)=> (),
+        Err(_) => {
+            println!("Failed to kill daemon with pid {}", pid);
+        }
+    }
     Ok(())
 }
